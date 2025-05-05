@@ -1,6 +1,7 @@
-# 🧨 Insecure Escape Room Booking Web App
+#  Insecure Escape Room Booking Web App
 
-This is a deliberately insecure web application built using **PHP** and **SQLite/MySQL** to demonstrate common web vulnerabilities. It mimics an escape room booking platform with a customer and admin interface.
+This is a deliberately insecure web application built using **PHP** and **MySQL** to demonstrate common web vulnerabilities. 
+It mimics an escape room booking platform with a customer and admin interface.
 
 >  WARNING: This application is **intentionally vulnerable** and **must never be deployed to a production server**.
 
