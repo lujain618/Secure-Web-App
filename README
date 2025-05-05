@@ -1,0 +1,32 @@
+# 🧨 Insecure Escape Room Booking Web App
+
+This is a deliberately insecure web application built using **PHP** and **SQLite/MySQL** to demonstrate common web vulnerabilities. It mimics an escape room booking platform with a customer and admin interface.
+
+>  WARNING: This application is **intentionally vulnerable** and **must never be deployed to a production server**.
+
+---
+
+##  Features
+
+- User registration and login
+- Browse and book escape rooms
+- Admin panel to manage bookings (accessible by bypass)
+- Ask-a-question popup feature
+
+---
+
+##  Implemented Vulnerabilities
+
+### 1. **SQL Injection**
+- Vulnerable login and registration forms.
+- Example: `email = ' OR 1=1 --` lets attackers bypass login.
+
+### 2. **Weak Password Storage**
+- Passwords are hashed using `MD5` (not secure).
+- Admin user in DB was originally stored in plaintext and then hashed with MD5.
+
+### 3. **Cross-Site Scripting (XSS)**
+- A popup form on `home.php` allows users to submit a question.
+- Submitted input is displayed **without sanitization**, allowing scripts like:
+  ```html
+  <script>alert('XSS')</script>

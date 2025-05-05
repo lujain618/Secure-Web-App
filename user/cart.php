@@ -1,21 +1,17 @@
 <?php
 session_start();
+include '../includes/config.php';
 
 // ❌ INSECURE: No session check (anyone can access the booking page)
 // if (true) { echo "Booking available for everyone"; }
 
 // ✅ SECURE: Allow only logged-in users
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 
-// ✅ SECURE: Connect to your SQLite database
-try {
-    $db = new PDO("sqlite:database.sqlite");
-} catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
-}
+
 
 // Handle booking submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -24,12 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $time = $_POST['time'];
     $user_id = $_SESSION['user_id'];
 
-    // ❌ INSECURE: Directly inserting data without validation or escaping
-    // $query = "INSERT INTO bookings (user_id, room_id, booking_day, booking_time)
-    //           VALUES ($user_id, $room_id, '$day', '$time')";
-    // $db->exec($query);
 
-    // ✅ SECURE: Validate room exists before booking
     $stmt = $db->prepare("SELECT * FROM rooms WHERE id = ?");
     $stmt->execute([$room_id]);
     $room = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -38,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Room not found.");
     }
 
-    // ✅ SECURE: Use prepared statement to prevent SQL injection
     $stmt = $db->prepare("INSERT INTO bookings (user_id, room_id, booking_day, booking_time) VALUES (?, ?, ?, ?)");
     $stmt->execute([$user_id, $room_id, $day, $time]);
 }

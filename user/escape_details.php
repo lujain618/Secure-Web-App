@@ -1,36 +1,19 @@
 <?php
 session_start();
+include '../includes/config.php';
 
-// ❌ INSECURE: No session check (anyone could access the page)
-// if (true) { echo "Anyone can book!"; }
 
-// ✅ SECURE: Ensure user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 
-// ❌ INSECURE: No validation for room ID (could be missing or invalid)
-// $id = $_GET['id'];
 
-// ✅ SECURE: Validate room ID exists
 if (!isset($_GET['id'])) {
     die("Room ID not provided.");
 }
 
-// ✅ SECURE: Connect to the database with error handling
-try {
-    $db = new PDO("sqlite:database.sqlite");
-} catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
-}
 
-// ❌ INSECURE: Using raw query without sanitization — vulnerable to SQL injection
-// $id = $_GET['id'];
-// $query = "SELECT * FROM rooms WHERE id = $id";
-// $room = $db->query($query)->fetch();
-
-// ✅ SECURE: Cast to integer and use prepared statement
 $id = (int) $_GET['id'];
 $stmt = $db->prepare("SELECT * FROM rooms WHERE id = ?");
 $stmt->execute([$id]);
@@ -92,7 +75,7 @@ if (!$room) {
 <body>
 
 <div class="container">
-    <img src="images/<?php echo htmlspecialchars($room['image']); ?>" alt="Room image">
+    <img src="../uploads/<?php echo htmlspecialchars($room['image']); ?>" alt="Room image">
     <h2><?php echo htmlspecialchars($room['name']); ?></h2>
     <p><strong>Description:</strong> <?php echo htmlspecialchars($room['description']); ?></p>
     <p><strong>Difficulty:</strong> <?php echo htmlspecialchars($room['difficulty']); ?></p>
@@ -124,4 +107,4 @@ if (!$room) {
 </div>
 
 </body>
-</html>
+</html> 

@@ -1,63 +1,49 @@
 <?php
 session_start();
+include '../includes/config.php';
+
 $message = "";
 
-// ✅ If user is already logged in, redirect them to home
 if (isset($_SESSION['user_id'])) {
-    header("Location: home.php");
+    // Already logged in, redirect based on role
+    if ($_SESSION['role'] === 'admin') {
+        header("Location: ../admin/admin_dashboard.php");
+    } else {
+        header("Location: ../user/home.php");
+    }
     exit();
-}
-
-// ✅ SECURE: Connect to your database with error handling
-try {
-    $db = new PDO("sqlite:database.sqlite");
-} catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST['email']);
-    $password = $_POST['password'];
+    $password = md5($_POST['password']); //  Weak hash algorithm
 
     try {
-        // ❌ INSECURE: vulnerable to SQL injection — DO NOT USE
-        // $query = "SELECT * FROM users WHERE email = '$email'";
-        // $result = $db->query($query);
-        // $user = $result->fetch();
+        //  Insecure: vulnerable to SQL injection
+        $query = "SELECT * FROM users WHERE email = '$email' AND password = '$password'";
+        $result = $db->query($query);
+        $user = $result->fetch(PDO::FETCH_ASSOC);
 
-        // ✅ SECURE: Use a prepared statement to prevent SQL injection
-        $stmt = $db->prepare("SELECT * FROM users WHERE email = :email");
-        $stmt->execute(['email' => $email]);
-        $user = $stmt->fetch();
-
-        // ❌ INSECURE: plain-text password check — DO NOT USE
-        // if ($user && $user['password'] == $password) {
-        //     $_SESSION['user_id'] = $user['id'];
-        //     $_SESSION['username'] = $user['username'];
-        //     header("Location: home.php");
-        //     exit();
-        // }
-
-        // ✅ SECURE: Use password_verify() to compare hashed password
-        if ($user && password_verify($password, $user['password'])) {
+        if ($user) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
+            $_SESSION['role'] = $user['role'];
 
-            // Optional: store role if using roles
-            if (isset($user['role'])) {
-                $_SESSION['role'] = $user['role'];
+            if ($user['role'] === 'admin') {
+                header("Location: ../admin/admin_dashboard.php");
+            } else {
+                header("Location: ../user/home.php");
             }
-
-            header("Location: home.php");
             exit();
         } else {
-            $message = "❌ Invalid email or password.";
+            $message = " Invalid email or password.";
         }
     } catch (PDOException $e) {
         $message = "Database error: " . $e->getMessage();
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -120,8 +106,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="login-box">
         <h2>Login</h2>
         <form method="POST">
-            <!-- ✅ SECURE: Frontend validation to require fields -->
-            <input type="email" name="email" placeholder="Email" required>
+            <input type="text" name="email" placeholder="Email" required> <!-- Vulnerable to SQLi because of input type = text not email -->
             <input type="password" name="password" placeholder="Password" required>
             <button type="submit">Login</button>
         </form>
@@ -130,3 +115,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 </body>
 </html>
+
+

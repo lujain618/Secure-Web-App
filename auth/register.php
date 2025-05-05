@@ -2,42 +2,45 @@
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+session_start();
+include '../includes/config.php';
+
 $message = "";
 
-// Connect to your database
-$db = new PDO("sqlite:database.sqlite");
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
     $username = trim($_POST['username']);
     $email = trim($_POST['email']);
-    $password = $_POST['password'];
-    $confirm_password = $_POST['confirm_password'];
+    $password = md5($_POST['password']); // Weak hash algorithm
+    $confirm_password = md5($_POST['confirm_password']);
 
     if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
-        $message = "❌ Please fill in all fields.";
+        $message = "Please fill in all fields.";
     } elseif ($password !== $confirm_password) {
-        $message = "❌ Passwords do not match.";
+        $message = "Passwords do not match.";
     } else {
         try {
-            $checkStmt = $db->prepare("SELECT * FROM users WHERE email = :email");
-            $checkStmt->execute(['email' => $email]);
-            $existingUser = $checkStmt->fetch();
+            // Check if email already exists using prepared statement
+            // Vulnerable to SQLi
+            $query = "SELECT id FROM users WHERE email = '$email'";
+            $result = $db->query($query);
 
-            if ($existingUser) {
-                $message = "❌ Email already registered. Please login or use a different email.";
-            } else {
-                $stmt = $db->prepare("INSERT INTO users (username, email, password) VALUES (:username, :email, :password)");
-                $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            $query = "SELECT id FROM users WHERE email = '$email'";
+$stmt = $db->query($query);
 
-                $stmt->execute([
-                    'username' => $username,
-                    'email' => $email,
-                    'password' => $hashedPassword
-                ]);
+if ($stmt && $stmt->fetch()) {
+    $message = "Email already registered. Please login or use a different email.";
+} else {
+    $role = 'user'; // default role
 
-                header("Location: login.php");
-                exit();
-            }
+    // Insert new user with weak MD5 hashed password
+    $query = "INSERT INTO users (username, email, password, role) VALUES ('$username', '$email', '$password', '$role')";
+    $db->exec($query);
+
+    header("Location: login.php");
+    exit();
+}
+
         } catch (PDOException $e) {
             $message = "Database error: " . $e->getMessage();
         }
