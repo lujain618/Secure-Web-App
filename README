@@ -31,3 +31,25 @@ It mimics an escape room booking platform with a customer and admin interface.
 - Submitted input is displayed **without sanitization**, allowing scripts like:
   ```html
   <script>alert('XSS')</script>
+
+---
+
+## How to use:
+
+1. Install XAMPP
+
+2. Place the project in htdocs
+
+3. Start Apache and MySQL
+
+4. Database Setup
+
+5. Import database.sql into phpMyAdmin
+
+Or run SQL setup commands manually
+
+6. Launch the app
+
+Go to http://localhost/insecure-web-app/register.php to register
+
+Use login, add questions, explore vulnerabilities
